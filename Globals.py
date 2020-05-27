@@ -12,3 +12,4 @@ global thresholdCPU #Limite de uso del CPU
 thresholdCPU = 2.00
 global thresholdRAM #Limite de uso de RAM
 thresholdRAM = 89.00
+#bado was here
