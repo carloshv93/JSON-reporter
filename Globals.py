@@ -14,6 +14,7 @@ interval = "3600" #En segundos. 3600 = 1h
 
 global thresholdCPU #Limite de uso del CPU
 thresholdCPU = 2.00
+<<<<<<< HEAD
 
 global thresholdRAM #Limite de RAM disponible
 thresholdRAM = 89.00
@@ -25,3 +26,8 @@ sensors = {"CPU":sensorsCPU,"Percent Available Memory":sensorsRAM} #Percent Avai
 
 global sensoresPermitidos
 sensoresPermitidos = ["Carga de procesador","System Health CPU","SNMP Carga de CPU","CPU Load","Ping","System Health Memoria","System Health Memory","Uptime","Disponibilidad SNMP"]
+=======
+global thresholdRAM #Limite de uso de RAM
+thresholdRAM = 89.00
+#bado was here
+>>>>>>> origin
