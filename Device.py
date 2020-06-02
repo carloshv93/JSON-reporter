@@ -2,7 +2,6 @@ import requests,Sensor,Globals,json
 
 class Device:
     id = None
-    type = None
     ip = None
     name = None
     averages = {}

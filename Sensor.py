@@ -24,24 +24,23 @@ class Sensor:
         for data in devicesJSON["histdata"]:
             self.historic.append(data)
 
-    def searchKey(self,names):
+    def searchKey(self,name):
         for key in self.keys:
-            for name in names:
-                if name in key :
-                    if name == "Percent Available Memory" and "Processor" in key:
-                        self.averageKey = "RAM"
-                    elif name != "Percent Available Memory":
-                        self.averageKey = name
-                    return key
+            if name in key:
+                if name == "Percent Available Memory" and "Processor" in key:
+                    self.averageKey = "RAM"
+                elif name != "Percent Available Memory":
+                    self.averageKey = name
+                return key
 
     def ifKey(self,name):
         for key in self.keys:
-            return (name in key)
+            return (name == key)
 
     def avgByKey(self,names):
         values = []
         key = self.searchKey(names)
-        if self.averageKey:
+        if self.averageKey != None:
             for data in self.historic:
                 if data.get(key) == "":
                     values.append(0.0)
@@ -51,9 +50,9 @@ class Sensor:
         return self.average
 
     def checkThreshold(self,key):
-        if "CPU" in key:
+        if "CPU" == key:
             return (self.average > Globals.thresholdCPU)
-        elif "Percent Available Memory":
+        elif "RAM" == key:
             return (self.average < Globals.thresholdRAM)
     def toJSON(self):
         data = {"id":str(self.id),"name":str(self.name),self.averageKey : str(self.average)}

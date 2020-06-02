@@ -27,14 +27,19 @@ class Devices:
     def getAverages(self):
         averages = list()
         values = list()
-        for device in self.devices:
-                averages.append(device.getAverages())  
-        keys = averages.pop(0).keys()
-        for key in keys:
-            for average in averages:
-                values.append(average[key])
-            
-            self.averages[key] = statistics.mean(values)
+        if self.devices != list():
+            for device in self.devices:
+                    averages.append(device.getAverages())  
+            keys = averages[0].keys()
+            for key in keys:
+                for average in averages:
+                    print("Device: "+ device.name)
+                    print("Key: "+ key)
+                    print(average)
+                    if average != {}:
+                        values.append(average[key])
+                if values != list():
+                    self.averages[key] = statistics.mean(values)
         return self.averages        
 
     def toJSON(self):
