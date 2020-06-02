@@ -9,9 +9,10 @@
 #Importación de librerías necesaias 
 import Devices,Device,Sensor,Globals
 import winsound,json
+
+
 duration = 1000  # milliseconds
 freq = 440  # Hz
-
 
 #variables globales
 groups = [70664,117703,105275,111038]
@@ -100,3 +101,7 @@ writer.save()
 """
 
 winsound.Beep(freq, duration)
+
+if __name__ == "__main__":
+    #funciones a correr:
+    """Solo se va a ejectar 
