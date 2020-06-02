@@ -1,4 +1,6 @@
-import requests,Sensor,Globals,json
+import requests,json
+from sensor import Sensor
+import Globals
 
 class Device:
     id = None
@@ -18,7 +20,7 @@ class Device:
         stringRequest = requests.get("https://monitoreo.datasys.la/api/table.json?content=sensors&output=json&columns=objid,sensor,name,host&count=10000&id="+str(self.id)+"&username="+Globals.user+"&password="+Globals.password)
         stringJSON = stringRequest.json()
         for sensor in stringJSON["sensors"]:
-            self.sensors.append(Sensor.Sensor(sensor["objid"],sensor["sensor"]))
+            self.sensors.append(Sensor(sensor["objid"],sensor["sensor"]))
 
     def containsSensor(self,names):
         result = False

@@ -8,7 +8,9 @@
 
 #Importación de librerías necesaias 
 from controller import Controller
-import winsound,json
+import os, sys
+sys.path.append(".")
+
 
 if __name__=='__main__':
     controller = Controller()

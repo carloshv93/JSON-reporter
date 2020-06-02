@@ -1,4 +1,6 @@
-import requests,Device,Globals,statistics
+import requests,statistics
+from device import Device
+import Globals
 
 class Devices:
     id = None
@@ -14,7 +16,7 @@ class Devices:
         devicesRequest = requests.get("https://monitoreo.datasys.la/api/table.json?content=devices&output=json&columns=objid,host,device&count=10000&id="+str(self.id)+"&username="+Globals.user+"&password="+Globals.password)
         devicesJSON = devicesRequest.json()
         for device in devicesJSON["devices"]:
-            self.devices.append(Device.Device(device["objid"],device["host"],device["device"]))
+            self.devices.append(Device(device["objid"],device["host"],device["device"]))
 
     def searchDevicesBySensor(self,name):
         devices = list()

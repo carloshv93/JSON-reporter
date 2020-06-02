@@ -7,11 +7,14 @@
 # -----------------------------------------------------------
 
 #Importación de librerías necesaias 
-import Devices,Device,Sensor,Globals
+from devices import Devices
+from device import Device
+from sensor import Sensor
+import Globals 
 import winsound,json
 
 
-class controllerMain():
+class Controller():
 
     def __init__(self):
         self.duration = 1000  # milliseconds
@@ -25,12 +28,12 @@ class controllerMain():
         self.balanceadoresGroup = 111038
 
         #more variables
-        group = Devices.Devices(routersGroupId)
-        devicesOverThreshold = list()
-        devicesFiltered = list()
-        devicesNotContains = list()
-        devicesWithoutSensors = list()
-        group.addDevices()
+        self.group = Devices(self.routersGroupId)
+        self.devicesOverThreshold = list()
+        self.devicesFiltered = list()
+        self.devicesNotContains = list()
+        self.devicesWithoutSensors = list()
+        self.group.addDevices()
 
     def createJSONFile(self,object,name):
         with open(name, 'w') as outfile:
@@ -56,13 +59,13 @@ class controllerMain():
             self.group.getAverages()
             createJSONFile(self.group.toJSON(),"Dispositivos sin sensores deseados " + sensor +".json")
         elif format == "txt":
-            group.devices = self.devicesOverThreshold
+            self.group.devices = self.devicesOverThreshold
             self.group.getAverages()
             print ("Dispositivos con unbral superado\n" + (self.group.toString()))
             self.group.devices = self.devicesNotContains
             self.group.getAverages()
             print ("Dispositivos con sensores no deseados\n" + self.group.toString())
-            group.devices = self.devicesFiltered
+            self.group.devices = self.devicesFiltered
             self.group.getAverages()
             print ("Dispositivos dentro del reporte\n" + self.group.toString())
             self.group.devices = self.devicesWithoutSensors
@@ -70,31 +73,39 @@ class controllerMain():
             print ("Dispositivos sin sensores deseados\n" + self.group.toString())
                 
 
+    def agregaSensores(self):
+        for device in self.group.devices:
+            device.addSensors()
+
+    def hace_otro_for(self, sensorValue, sensorKey):
+        for device in self.group.devices:
+            if (device.containsSensor(sensorValue)):
+                self.devicesFiltered.append(device)
+            for sensor in device.sensors:
+                if sensor.name in sensorValue:
+                    sensor.addHistoricData()
+                    sensor.avgByKey(sensorKey)          
+                    if (sensor.checkThreshold(sensor.averageKey)):
+                        self.devicesOverThreshold.append(device)
+            device.getAverages()
+        else:
+            self.devicesWithoutSensors.append(device)  
+
+    def agrupa_no_permitidos(self):
+        for device in self.group.devices:
+            if (device.ifSensorNotAllowed(Globals.sensoresPermitidos)):
+                self.devicesNotContains.append(device)      
 
     def separar_en_metodos(self):
         #Filtrar dispositivos basado en especificos sensores
         for (sensorKey,sensorValue) in Globals.sensors.items():
             #Creación de dispositivos
             #Agregar sensores a los dispositivos 
-            for device in self.group.devices:
-                device.addSensors()
-            for device in self.group.devices:
-                if (device.containsSensor(sensorValue)):
-                    self.devicesFiltered.append(device)
-                    for sensor in device.sensors:
-                        if sensor.name in sensorValue:
-                            sensor.addHistoricData()
-                            sensor.avgByKey(sensorKey)          
-                            if (sensor.checkThreshold(sensor.averageKey)):
-                                self.devicesOverThreshold.append(device)
-                    device.getAverages()
-                else:
-                    self.devicesWithoutSensors.append(device) 
+            self.agregaSensores()
+            self.hace_otro_for(sensorValue, sensorKey)
             #Dispositivos con sensores no permitidos
-            for device in self.group.devices:
-                if (device.ifSensorNotAllowed(Globals.sensoresPermitidos)):
-                    self.devicesNotContains.append(device)
-            printResults("json",sensorKey)
+            self.agrupa_no_permitidos()
+            self.printResults("json",sensorKey)
 
 
     """
