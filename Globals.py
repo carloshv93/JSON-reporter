@@ -18,10 +18,13 @@ thresholdCPU = 2.00
 global thresholdRAM #Limite de RAM disponible
 thresholdRAM = 89.00
 
+
 sensorsCPU = ["System Health CPU","SNMP Carga de CPU","CPU Load","Carga de procesador"]
-sensorsRAM = ["System Health Memoria","System Health Memory"]
+sensorsRAM = ["System Health Memoria","System Health Memory","Memory: Physical Memory","Memory: Virtual Memory"]
+sensorsStorage = ["Disk Free"]
 global sensors
-sensors = {"CPU":sensorsCPU,"Percent Available Memory":sensorsRAM} #Percent Available Memory = RAM
+##"CPU":sensorsCPU,"RAM":sensorsRAM,
+sensors = {"Storage":sensorsStorage} #Percent Available Memory = RAM
 
 global sensoresPermitidos
-sensoresPermitidos = ["Carga de procesador","System Health CPU","SNMP Carga de CPU","CPU Load","Ping","System Health Memoria","System Health Memory","Uptime","Disponibilidad SNMP"]
+sensoresPermitidos = ["Disk Free","Carga de procesador","System Health CPU","SNMP Carga de CPU","CPU Load","Ping","System Health Memoria","System Health Memory","Uptime","Disponibilidad SNMP"]

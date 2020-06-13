@@ -13,7 +13,7 @@ class Sensor:
         self.keys = list()
         self.historic = list()
         self.average= 0.0
-        self.averageKey = None
+        self.averageKey = None  
     
     def addHistoricData(self):
         devicesRequest = requests.get("https://monitoreo.datasys.la/api/historicdata.json?id="+str(self.id)+"&avg="+Globals.interval+"&sdate="+Globals.startdate+"&edate="+Globals.enddate+"&usecaption=1&username="+Globals.user+"&password="+Globals.password)
@@ -25,17 +25,39 @@ class Sensor:
             self.historic.append(data)
 
     def searchKey(self,name):
-        for key in self.keys:
-            if name in key:
-                if name == "Percent Available Memory" and "Processor" in key:
-                    self.averageKey = "RAM"
-                elif name != "Percent Available Memory":
-                    self.averageKey = name
-                return key
+        if name == "CPU":
+            self.averageKey = "CPU"
+            if self.name in Globals.sensorsCPU:
+                if (self.ifKey("Total")):
+                    return "Total"
+                else: 
+                    for key in self.keys:
+                        if name in key:
+                            return key
+        elif name == "RAM":
+            if self.name in Globals.sensorsRAM:
+                for key in self.keys:
+                    if (("Percent" in key and "Processor" in key) or "Porcentaje de memoria disponible" in key):
+                        if "Virtual" in self.name:
+                            self.averageKey = "Virtual RAM"
+                        elif "Physical" in self.name:
+                                self.averageKey = "Physical RAM"
+                        else:
+                            self.averageKey = "RAM"
+                        return key
+        elif name == "Storage":
+            for key in self.keys:
+                if key == "Espacio libre":
+                    self.averageKey = self.name
+                    return key
+
 
     def ifKey(self,name):
+        result = False
         for key in self.keys:
-            return (name == key)
+            if(name == key):
+                result = True
+        return result
 
     def avgByKey(self,names):
         values = []

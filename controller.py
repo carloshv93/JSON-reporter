@@ -11,7 +11,7 @@ from devices import Devices
 from device import Device
 from sensor import Sensor
 import Globals 
-import winsound,json
+import json
 
 
 class Controller():
@@ -19,45 +19,39 @@ class Controller():
     def __init__(self):
         self.duration = 1000  # milliseconds
         self.freq = 440  # Hz
-        #variables globales
-        self.groups = [70664,117703,105275,111038]
-        self.routersGroupId = 70664
-        self.servidoresGroupId = 109954
-        self.routersCoreGroupId = 117703
-        self.switchesGroupId = 105275
-        self.balanceadoresGroup = 111038
-
+        #variables globales     
+        # "RoutersCore":117703   
+        self.groups = {"Routers":70664,"Switches":105275,"Balanceadores":111038,"SAS":109954}
+        self.groupsTemp = {"SAS":109954}
+        
         #more variables
-        self.group = Devices(self.routersGroupId)
-        self.devicesOverThreshold = list()
-        self.devicesFiltered = list()
-        self.devicesNotContains = list()
-        self.devicesWithoutSensors = list()
-        self.group.addDevices()
 
     def createJSONFile(self,object,name):
         with open(name, 'w') as outfile:
             json.dump(object, outfile)
 
 
-    def printResults(self,format,sensor):
+    def printResults(self,format,sensor,group):
         if format == "json":
-            print ("Dispositivos con umbral superado: " + str(len(self.devicesOverThreshold)))
-            print ("Dispositivos con sensores no deseados: " + str(len(self.devicesNotContains)))
-            print ("Dispositivos dentro del reporte: " + str(len(self.devicesFiltered)))
-            print ("Dispositivos sin sensores deseados:  " + str(len(self.devicesWithoutSensors)))
-            self.group.devices = self.devicesOverThreshold
+            print ("Dispositivos con umbral superado: " + str(len(self.devicesOverThreshold.devices)))
+            print ("Dispositivos con sensores no deseados: " + str(len(self.devicesNotContains.devices)))
+            print ("Dispositivos dentro del reporte: " + str(len(self.devicesFiltered.devices)))
+            print ("Dispositivos sin sensores deseados:  " + str(len(self.devicesWithoutSensors.devices)))
+            self.group = self.devicesOverThreshold
             self.group.getAverages()
-            createJSONFile(self.group.toJSON(),"Dispositivos con umbrales superados " + sensor +".json")
-            self.group.devices = self.devicesNotContains
+            self.createJSONFile(self.group.toJSON(),group + " " + sensor + " Umbrales superados.json")
+
+            self.group = self.devicesNotContains
             self.group.getAverages()
-            createJSONFile(self.group.toJSON(),"Dispositivos con sensores no deseados " + sensor +".json")
-            self.group.devices = self.devicesFiltered
+            self.createJSONFile(self.group.toJSON(), group + " " + sensor + " Dispositivos con sensores no deseados.json")
+            
+            self.group = self.devicesFiltered
             self.group.getAverages()
-            createJSONFile(self.group.toJSON(),"Dispositivos para reporte " + sensor +".json")
-            self.group.devices = self.devicesWithoutSensors
+            self.createJSONFile(self.group.toJSON(), group + " " + sensor + " Dispositivos para reporte.json")
+            
+            self.group = self.devicesWithoutSensors
             self.group.getAverages()
-            createJSONFile(self.group.toJSON(),"Dispositivos sin sensores deseados " + sensor +".json")
+            self.createJSONFile(self.group.toJSON(), group + " " + sensor + " Dispositivos sin sensores deseados.json")
         elif format == "txt":
             self.group.devices = self.devicesOverThreshold
             self.group.getAverages()
@@ -72,47 +66,47 @@ class Controller():
             self.group.getAverages()
             print ("Dispositivos sin sensores deseados\n" + self.group.toString())
                 
-
-    def agregaSensores(self):
+    def filterDevicesBySensor(self,sensor):    
+        devicesFiltered = list()     
+        devicesWithoutSensors = list()
         for device in self.group.devices:
-            device.addSensors()
-
-    def hace_otro_for(self, sensorValue, sensorKey):
-        for device in self.group.devices:
-            if (device.containsSensor(sensorValue)):
-                self.devicesFiltered.append(device)
-            for sensor in device.sensors:
-                if sensor.name in sensorValue:
-                    sensor.addHistoricData()
-                    sensor.avgByKey(sensorKey)          
-                    if (sensor.checkThreshold(sensor.averageKey)):
-                        self.devicesOverThreshold.append(device)
-            device.getAverages()
-        else:
-            self.devicesWithoutSensors.append(device)  
+            if (device.containsSensor(sensor)):
+                devicesFiltered.append(device)
+            else:
+                devicesWithoutSensors.append(device)
+        self.devicesFiltered.copy(devicesFiltered)
+        self.devicesWithoutSensors.copy(devicesWithoutSensors)
 
     def agrupa_no_permitidos(self):
+        devicesNotContains = list()
         for device in self.group.devices:
             if (device.ifSensorNotAllowed(Globals.sensoresPermitidos)):
-                self.devicesNotContains.append(device)      
+                self.devicesNotContains.devices = devicesNotContains      
 
     def separar_en_metodos(self):
         #Filtrar dispositivos basado en especificos sensores
-        for (sensorKey,sensorValue) in Globals.sensors.items():
-            #Creación de dispositivos
-            #Agregar sensores a los dispositivos 
-            self.agregaSensores()
-            self.hace_otro_for(sensorValue, sensorKey)
-            #Dispositivos con sensores no permitidos
-            self.agrupa_no_permitidos()
-            self.printResults("json",sensorKey)
+        for (groupName,groupId) in self.groupsTemp.items():
+            print (groupName)
+            for (sensorKey,sensorValue) in Globals.sensors.items():
+                print("\t" + sensorKey)
+                if (sensorKey == "Storage"):
+                    pass
+                self.group = Devices(groupId)
+                self.group.addDevices()
+                self.group.agregarSensores()
+                self.devicesOverThreshold = Devices(self.group.id)
+                self.devicesNotContains = Devices(self.group.id)
+                self.devicesFiltered = Devices(self.group.id)
+                self.devicesWithoutSensors = Devices(self.group.id)
+                self.filterDevicesBySensor(sensorValue)
+                self.devicesFiltered.getGroupAverages(sensorValue,sensorKey)
+                #Dispositivos con sensores no permitidos
+                self.agrupa_no_permitidos()
+                self.printResults("json",sensorKey,groupName)
 
 
     """
     writer = pd.ExcelWriter('CPU Avergae.xlsx', engine='xlsxwriter')
     device.avgBySensorName("CPU").to_excel(writer, 'Sheet1')
     writer.save()
-
-    winsound.Beep(freq, duration)
     """
-

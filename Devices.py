@@ -18,6 +18,9 @@ class Devices:
         for device in devicesJSON["devices"]:
             self.devices.append(Device(device["objid"],device["host"],device["device"]))
 
+    def copy(self,devices):
+        self.devices = devices
+
     def searchDevicesBySensor(self,name):
         devices = list()
         for device in self.devices:
@@ -25,6 +28,10 @@ class Devices:
                 if(sensor.ifKey(name)):
                     devices.append(sensor.ifKey())
         return devices
+
+    def agregarSensores(self):
+        for device in self.devices:
+            device.addSensors()
 
     def getAverages(self):
         averages = list()
@@ -35,14 +42,23 @@ class Devices:
             keys = averages[0].keys()
             for key in keys:
                 for average in averages:
-                    print("Device: "+ device.name)
-                    print("Key: "+ key)
-                    print(average)
                     if average != {}:
                         values.append(average[key])
                 if values != list():
                     self.averages[key] = statistics.mean(values)
         return self.averages        
+
+    def getGroupAverages(self, sensorValue, sensorKey):
+        for device in self.devices:
+            for sensor in device.sensors:
+                if "Disk Free" in sensor.name:
+                    sensor.name = sensor.name.split(":\\",1)[0]
+                    sensor.addHistoricData()
+                    sensor.avgByKey(sensorKey)
+                if sensor.name in sensorValue:
+                    sensor.addHistoricData()
+                    sensor.avgByKey(sensorKey)
+            device.getAverages()
 
     def toJSON(self):
         data = {"objid":str(self.id),"devices count": len(self.devices),"averages": self.averages}

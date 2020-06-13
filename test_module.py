@@ -8,10 +8,11 @@
 
 #Importación de librerías necesaias 
 from controller import Controller
-import os, sys
+import os, sys, winsound
 sys.path.append(".")
 
 
 if __name__=='__main__':
     controller = Controller()
     controller.separar_en_metodos()
+    winsound.Beep(440, 1000)

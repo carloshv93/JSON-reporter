@@ -25,6 +25,8 @@ class Device:
     def containsSensor(self,names):
         result = False
         for sensor in self.sensors:
+            if "Disk Free" in names and "Disk Free" in sensor.name:
+                result = True
             if sensor.name in names:
                 result = True
         return result
